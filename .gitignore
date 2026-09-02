@@ -1,0 +1,12 @@
+# Config real de cada empresa (lleva la URL/anon de SU Supabase). Nunca subir.
+config.js
+
+# Basura del sistema / editores
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+node_modules/
+.vscode/
+.idea/

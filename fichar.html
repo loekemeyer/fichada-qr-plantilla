@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fichar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@500;600;700;800&display=swap">
+<style>
+  :root{
+    --teal-bright:#18D3C2; --teal-mid:#0E9AA0; --teal-deep:#0C6E77;
+    --navy:#0C3346; --navy-deep:#081722;
+    --panel:#FFFFFF; --panel-soft:#EEF3F3; --ink-strong:#132320; --ink-soft:#5F6E6C;
+    --on-dark:#EAFBF8; --on-dark-dim:#9AD6D2;
+    --ok:#0CA678; --err:#E03131; --warn:#E8912B;
+    --sans:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --display:"Sora",var(--sans);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;font-family:var(--sans);color:var(--on-dark);
+    background:
+      linear-gradient(122deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 42%),
+      radial-gradient(140% 130% at 88% 4%, var(--teal-bright) 0%, var(--teal-mid) 30%, var(--navy) 66%, var(--navy-deep) 100%);
+    background-attachment:fixed;min-height:100dvh;display:grid;place-items:center;
+    padding:26px 18px calc(26px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased;
+  }
+  .stage{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;}
+  .brand{font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--on-dark-dim);margin-bottom:20px;display:flex;align-items:center;gap:9px;}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--teal-bright);box-shadow:0 0 0 4px rgba(24,211,194,.28);}
+  .panel{
+    width:100%;background:var(--panel);border-radius:28px;padding:28px 24px 24px;
+    box-shadow:0 28px 56px -22px rgba(6,20,26,.7), 0 3px 0 rgba(255,255,255,.7) inset;
+  }
+  h1{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.02em;color:var(--ink-strong);margin:0 0 4px;text-wrap:balance;}
+  .lead{margin:0 0 20px;color:var(--ink-soft);font-size:14px;line-height:1.5;}
+  label.field{display:block;font-weight:700;font-size:12.5px;letter-spacing:.02em;color:var(--ink-strong);margin:0 0 7px;}
+  .input{
+    width:100%;font-family:var(--sans);font-size:16px;color:var(--ink-strong);
+    background:var(--panel-soft);border:1.5px solid #E2E9E8;border-radius:14px;
+    padding:14px 15px;outline:none;transition:border-color .15s, box-shadow .15s;
+  }
+  .input:focus{border-color:var(--teal-mid);box-shadow:0 0 0 4px rgba(14,154,160,.15);}
+  .remember{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13.5px;color:var(--ink-soft);cursor:pointer;}
+  .remember input{width:18px;height:18px;accent-color:var(--teal-mid);}
+  .btn{
+    width:100%;margin-top:22px;font-family:var(--display);font-weight:700;font-size:16px;color:#fff;
+    background:linear-gradient(180deg,var(--teal-mid),var(--teal-deep));border:none;border-radius:16px;
+    padding:16px;cursor:pointer;transition:transform .1s, filter .15s;
+    box-shadow:0 12px 24px -10px rgba(12,110,119,.7);
+  }
+  .btn:hover{filter:brightness(1.05)} .btn:active{transform:translateY(1px)}
+  .btn:disabled{filter:grayscale(.4) brightness(.9);cursor:default}
+  .msg{margin-top:16px;border-radius:14px;padding:13px 15px;font-size:14px;font-weight:600;line-height:1.45;display:none;}
+  .msg.show{display:block}
+  .msg--ok{background:rgba(12,166,120,.12);color:#075E45;border:1px solid rgba(12,166,120,.3);}
+  .msg--err{background:rgba(224,49,49,.1);color:#B01919;border:1px solid rgba(224,49,49,.25);}
+  .msg--warn{background:rgba(232,145,43,.12);color:#8A560F;border:1px solid rgba(232,145,43,.3);}
+  .result{display:none;text-align:center;padding:8px 0 4px;}
+  .result.show{display:block}
+  .result .tick{width:64px;height:64px;border-radius:50%;background:rgba(12,166,120,.14);display:grid;place-items:center;margin:0 auto 14px;}
+  .result h2{font-family:var(--display);font-size:24px;color:var(--ink-strong);margin:0 0 4px;}
+  .result .hora{font-size:34px;font-weight:800;color:var(--ok);font-variant-numeric:tabular-nums;margin:6px 0 2px;}
+  .result p{color:var(--ink-soft);font-size:14px;margin:6px 0 0;}
+  .foot{margin-top:18px;font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--on-dark-dim);text-align:center;}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="brand"><span class="dot"></span><span id="brand-name">Fichada</span></div>
+    <div class="panel">
+      <div id="form-view">
+        <h1>Confirmá tu correo</h1>
+        <p class="lead">Registrás tu fichada del día. Verificá que el correo sea el tuyo.</p>
+        <label class="field" for="email">Correo electrónico</label>
+        <input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="tu.correo@empresa.com" />
+        <label class="remember"><input type="checkbox" id="remember" checked> Recordar en este dispositivo</label>
+        <button class="btn" id="submit">Fichar</button>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div class="result" id="result-view">
+        <div class="tick">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0CA678" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2 id="result-title">¡Fichado!</h2>
+        <div class="hora" id="result-hora">--:--</div>
+        <p id="result-sub">Registro guardado.</p>
+      </div>
+    </div>
+    <p class="foot" id="foot">Fichada por QR</p>
+  </div>
+
+  <script src="config.js" onerror="window.__noCfg=true"></script>
+  <script>
+  (function(){
+    var cfg = window.FICHADA_CFG || {};
+    var backend = !!(cfg.supabaseUrl && cfg.supabaseUrl.indexOf("XXXX") === -1 && cfg.supabaseAnon);
+    var token = new URLSearchParams(location.search).get("t") || "";
+    var LS = "fichada.email";
+
+    var $ = function(id){ return document.getElementById(id); };
+    $("brand-name").textContent = cfg.empresa || "Fichada";
+    $("foot").textContent = (cfg.empresa || "Fichada") + " · por QR";
+
+    // correo recordado
+    try{ var saved = localStorage.getItem(LS); if (saved) $("email").value = saved; }catch(e){}
+
+    if (!token){
+      showMsg("warn", "Abrí esta página escaneando el QR de la pantalla de fichada. No entres por link directo.");
+      $("submit").disabled = true;
+    }
+
+    function showMsg(kind, text){
+      var m = $("msg"); m.className = "msg show msg--" + kind; m.textContent = text;
+    }
+    function isEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+
+    var ERRORS = {
+      token_vencido:   ["warn", "El código venció. Volvé a la pantalla y escaneá el QR nuevo."],
+      token_invalido:  ["err",  "Código inválido. Escaneá el QR de la pantalla de fichada."],
+      no_habilitado:   ["err",  "Tu correo no está habilitado para fichar. Avisá a RR. HH."],
+      faltan_datos:    ["warn", "Faltan datos. Revisá el correo."],
+      sin_config:      ["err",  "El sistema no está configurado. Avisá a soporte."],
+      error_interno:   ["err",  "Error del servidor. Reintentá en unos segundos."],
+      body_invalido:   ["err",  "No se pudo enviar. Reintentá."],
+      metodo:          ["err",  "No se pudo enviar. Reintentá."]
+    };
+
+    async function enviar(email){
+      if (!backend){
+        // Demo sin backend: simula un OK con la hora actual.
+        var now = new Date();
+        return { ok:true, hora: String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0"), __demo:true };
+      }
+      var r = await fetch(cfg.supabaseUrl + cfg.fnFichar, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "apikey":cfg.supabaseAnon, "Authorization":"Bearer "+cfg.supabaseAnon },
+        body: JSON.stringify({ token: token, email: email })
+      });
+      return await r.json();
+    }
+
+    $("submit").addEventListener("click", async function(){
+      var email = ($("email").value || "").trim().toLowerCase();
+      if (!isEmail(email)){ showMsg("warn","Ingresá un correo válido."); $("email").focus(); return; }
+
+      try{
+        if ($("remember").checked) localStorage.setItem(LS, email); else localStorage.removeItem(LS);
+      }catch(e){}
+
+      $("submit").disabled = true; $("submit").textContent = "Enviando…";
+      $("msg").className = "msg";
+      try{
+        var d = await enviar(email);
+        if (d && d.ok){
+          $("form-view").style.display = "none";
+          $("result-view").className = "result show";
+          $("result-hora").textContent = d.hora || "--:--";
+          $("result-sub").textContent = d.__demo ? "Vista previa (sin backend)." : "Registro guardado. Buen día.";
+        } else if (d && d.error === "ya_ficho"){
+          $("form-view").style.display = "none";
+          $("result-view").className = "result show";
+          $("result-title").textContent = "Ya fichaste hoy";
+          $("result-hora").textContent = d.hora || "--:--";
+          $("result-sub").textContent = "Tu fichada de hoy ya quedó registrada.";
+        } else {
+          var e = ERRORS[(d && d.error)] || ["err","No se pudo fichar. Reintentá."];
+          showMsg(e[0], e[1]);
+          $("submit").disabled = false; $("submit").textContent = "Fichar";
+        }
+      }catch(err){
+        showMsg("err","Sin conexión. Revisá la red e intentá de nuevo.");
+        $("submit").disabled = false; $("submit").textContent = "Fichar";
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

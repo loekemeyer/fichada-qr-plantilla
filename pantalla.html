@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pantalla de Fichada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap">
+<style>
+  :root{
+    --teal-bright:#18D3C2; --teal-mid:#0E9AA0; --teal-deep:#0C6E77;
+    --navy:#0C3346; --navy-deep:#081722; --pill:#0A2A38;
+    --panel:#FFFFFF; --panel-soft:#EEF3F3; --ink-strong:#132320;
+    --on-dark:#EAFBF8; --on-dark-dim:#9AD6D2;
+    --sans:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --display:"Sora",var(--sans);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;font-family:var(--sans);color:var(--on-dark);
+    background:
+      linear-gradient(122deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 40%),
+      linear-gradient(300deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 55%),
+      radial-gradient(135% 130% at 88% 6%, var(--teal-bright) 0%, var(--teal-mid) 32%, var(--navy) 66%, var(--navy-deep) 100%);
+    background-attachment:fixed;min-height:100dvh;display:grid;place-items:center;
+    padding:28px 20px calc(28px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  .stage{width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;}
+  .brand{
+    font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--on-dark-dim);margin-bottom:26px;display:flex;align-items:center;gap:9px;text-align:center;
+  }
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--teal-bright);box-shadow:0 0 0 4px rgba(24,211,194,.28);}
+  .card{position:relative;width:100%;}
+  .pill{
+    position:absolute;top:0;left:50%;transform:translate(-50%,-52%);z-index:2;
+    display:inline-flex;align-items:center;gap:9px;background:var(--pill);color:#fff;
+    font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.01em;
+    padding:13px 22px;border-radius:999px;white-space:nowrap;
+    box-shadow:0 12px 26px -10px rgba(8,23,34,.7), 0 0 0 1px rgba(24,211,194,.25) inset;
+  }
+  .pill svg{width:19px;height:19px;flex:0 0 auto}
+  .panel{
+    background:var(--panel);border-radius:32px;padding:44px 26px 26px;
+    box-shadow:0 30px 60px -22px rgba(6,20,26,.72), 0 3px 0 rgba(255,255,255,.7) inset;
+    display:flex;flex-direction:column;align-items:center;
+  }
+  .qr-frame{
+    width:248px;height:248px;background:#fff;border-radius:22px;padding:14px;
+    display:grid;place-items:center;border:1px solid #E8EEED;
+  }
+  .qr-frame canvas,.qr-frame img{display:block;width:100%!important;height:100%!important;image-rendering:pixelated;border-radius:6px;}
+  .meter{width:100%;margin-top:24px;}
+  .meter__row{display:flex;align-items:baseline;justify-content:space-between;font-weight:600;font-size:13.5px;color:#5F6E6C;margin-bottom:9px;}
+  .meter__row b{font-weight:800;color:var(--ink-strong);font-variant-numeric:tabular-nums;font-size:15px;}
+  .track{height:8px;border-radius:999px;background:var(--panel-soft);overflow:hidden;}
+  .track__fill{height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,var(--teal-bright),var(--teal-deep));transition:width .28s linear;transform-origin:left;}
+  .foot{margin-top:22px;font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--on-dark-dim);text-align:center;line-height:1.5;}
+  .foot .tag{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.12);color:var(--on-dark);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;}
+  .warn{display:none;margin-top:16px;max-width:300px;text-align:center;background:rgba(0,0,0,.22);color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;font-weight:600;}
+  .warn.show{display:block}
+  @media (prefers-reduced-motion:reduce){.track__fill{transition:none}}
+  @media (max-width:360px){.qr-frame{width:216px;height:216px}.pill{font-size:15px;padding:12px 18px}}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="brand"><span class="dot"></span><span id="brand-name">Fichada</span></div>
+    <div class="card">
+      <span class="pill">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" stroke="#18D3C2" stroke-width="2.1" stroke-linecap="round"/>
+          <path d="M4 12h16" stroke="#18D3C2" stroke-width="2.1" stroke-linecap="round"/>
+        </svg>
+        Escaneá para fichar
+      </span>
+      <div class="panel">
+        <div class="qr-frame"><div id="qr" aria-label="Código QR de fichada"></div></div>
+        <div class="meter">
+          <div class="meter__row"><span>Nuevo código en</span><b><span id="secs">30</span> s</b></div>
+          <div class="track"><div class="track__fill" id="fill"></div></div>
+        </div>
+      </div>
+    </div>
+    <p class="foot">El código cambia cada <span id="foot-secs">30</span> segundos. Una foto vieja ya no sirve.
+      <br><span class="tag" id="mode-tag">Vista previa</span></p>
+    <div class="warn" id="warn"></div>
+  </div>
+
+  <script src="config.js" onerror="window.__noCfg=true"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+  (function(){
+    var cfg = window.FICHADA_CFG || {};
+    var PERIOD = cfg.periodoSeg || 30;
+    var backend = !!(cfg.supabaseUrl && cfg.supabaseUrl.indexOf("XXXX") === -1 && cfg.supabaseAnon);
+    var CLAVE = new URLSearchParams((location.hash||"").replace(/^#/,"")).get("clave") || "";
+    var FICHAR_URL = location.origin + location.pathname.replace(/pantalla\.html$/,"") + "fichar.html";
+
+    var mount=document.getElementById("qr"), secsEl=document.getElementById("secs"),
+        fill=document.getElementById("fill"), warn=document.getElementById("warn"),
+        footSecs=document.getElementById("foot-secs"), modeTag=document.getElementById("mode-tag"),
+        brandName=document.getElementById("brand-name");
+
+    brandName.textContent = (cfg.empresa || "Fichada");
+    footSecs.textContent = PERIOD;
+
+    function showWarn(m){ warn.className="warn show"; warn.textContent=m; }
+    if (typeof QRCode === "undefined"){ showWarn("No se pudo cargar la librería QR. Revisá la conexión de esta pantalla."); return; }
+
+    var qr = new QRCode(mount, { text: FICHAR_URL, width:220, height:220,
+      colorDark:"#132320", colorLight:"#ffffff", correctLevel: QRCode.CorrectLevel.M });
+
+    // ----- modo backend real -----
+    async function pedirToken(){
+      var r = await fetch(cfg.supabaseUrl + cfg.fnEmitir, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "apikey":cfg.supabaseAnon,
+                  "Authorization":"Bearer "+cfg.supabaseAnon, "x-clave-dispositivo":CLAVE },
+        body: JSON.stringify({})
+      });
+      var d = await r.json();
+      if (d.error) throw new Error(d.error);
+      return d.token;
+    }
+    // ----- modo demo (sin backend): token derivado del tiempo, NO seguro -----
+    function demoToken(bucket){
+      var sig=((bucket*2654435761)%1000000000).toString(36);
+      return bucket.toString(36)+"."+sig;
+    }
+
+    if (backend){
+      modeTag.textContent = "En vivo";
+      if (!CLAVE){ showWarn("Abrí esta pantalla con la clave del dispositivo:  pantalla.html#clave=TU_CLAVE"); }
+    } else {
+      modeTag.textContent = "Vista previa · sin backend";
+    }
+
+    var lastBucket=-1, rotando=false;
+    async function rotar(){
+      if (rotando) return; rotando=true;
+      try{
+        var t;
+        if (backend){
+          if (!CLAVE){ rotando=false; return; }
+          t = await pedirToken();
+        } else {
+          t = demoToken(Math.floor(Date.now()/1000/PERIOD));
+        }
+        qr.clear(); qr.makeCode(FICHAR_URL + "?t=" + encodeURIComponent(t));
+        warn.className="warn";
+      }catch(e){
+        showWarn(e.message==="clave_invalida" ? "Clave de dispositivo inválida." : "No se pudo generar el código. Revisá la conexión.");
+      }finally{ rotando=false; }
+    }
+
+    function tick(){
+      var nowSec=Date.now()/1000, bucket=Math.floor(nowSec/PERIOD);
+      if (bucket!==lastBucket){ lastBucket=bucket; rotar(); }
+      var left=PERIOD-(nowSec%PERIOD);
+      secsEl.textContent=Math.ceil(left);
+      fill.style.width=Math.max(0,Math.min(100,(left/PERIOD)*100))+"%";
+    }
+    tick(); setInterval(tick, 250);
+  })();
+  </script>
+</body>
+</html>

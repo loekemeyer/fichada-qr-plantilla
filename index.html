@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fichada QR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@500;600;700&display=swap">
+<style>
+  :root{
+    --teal-bright:#18D3C2; --teal-mid:#0E9AA0; --navy:#0C3346; --navy-deep:#081722;
+    --panel:#FFFFFF; --panel-soft:#F3F7F6; --ink-strong:#132320; --ink-soft:#5F6E6C;
+    --on-dark:#EAFBF8; --on-dark-dim:#9AD6D2;
+    --sans:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --display:"Sora",var(--sans);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;font-family:var(--sans);color:var(--on-dark);
+    background:
+      linear-gradient(122deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 42%),
+      radial-gradient(140% 130% at 88% 4%, var(--teal-bright) 0%, var(--teal-mid) 30%, var(--navy) 66%, var(--navy-deep) 100%);
+    background-attachment:fixed;min-height:100dvh;display:grid;place-items:center;padding:28px 20px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:100%;max-width:400px;text-align:center;}
+  .mark{width:54px;height:54px;border-radius:15px;background:rgba(255,255,255,.14);display:grid;place-items:center;margin:0 auto 16px;}
+  h1{font-family:var(--display);font-weight:700;font-size:27px;letter-spacing:-.02em;margin:0 0 6px;}
+  .sub{margin:0 0 26px;color:var(--on-dark-dim);font-size:14px;line-height:1.5;}
+  .links{display:flex;flex-direction:column;gap:12px;text-align:left;}
+  a.tile{
+    display:flex;align-items:center;gap:14px;background:var(--panel);color:var(--ink-strong);
+    border-radius:18px;padding:18px;text-decoration:none;
+    box-shadow:0 16px 34px -20px rgba(6,20,26,.7);transition:transform .12s;
+  }
+  a.tile:hover{transform:translateY(-1px)}
+  .ic{width:46px;height:46px;border-radius:13px;background:var(--panel-soft);display:grid;place-items:center;flex:0 0 auto}
+  .tile b{display:block;font-family:var(--display);font-size:15.5px}
+  .tile span{font-size:12.5px;color:var(--ink-soft)}
+  footer{margin-top:24px;font-size:11.5px;color:var(--on-dark-dim);line-height:1.6}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="mark">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M4 12h16" stroke="#18D3C2" stroke-width="2.1" stroke-linecap="round"/></svg>
+    </div>
+    <h1>Fichada QR</h1>
+    <p class="sub">Control de presencia por código QR rotativo. Sin pedir ubicación.</p>
+    <div class="links">
+      <a class="tile" href="pantalla.html">
+        <div class="ic">📺</div>
+        <div><b>Pantalla del trabajo</b><span>Abrir en el dispositivo fijo. Muestra el QR que rota.</span></div>
+      </a>
+      <a class="tile" href="fichar.html">
+        <div class="ic">📲</div>
+        <div><b>Fichar (demo)</b><span>La pantalla que se abre al escanear el QR.</span></div>
+      </a>
+    </div>
+    <footer>Plantilla · se configura por empresa (Supabase propio).<br>Guía en <b>README.md</b>.</footer>
+  </div>
+</body>
+</html>
