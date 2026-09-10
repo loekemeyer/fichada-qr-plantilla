@@ -1,0 +1,46 @@
+# Publica el sitio estático en GitHub Pages en cada push a main.
+# `enablement: true` habilita Pages solo la primera vez: no hace falta tocar
+# Settings a mano. El sitio es la raíz del repo (index / pantalla / fichar / panel).
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un solo deploy a la vez. No cancela el que ya está corriendo.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      # Solo el sitio: nada de supabase/ ni docs sueltos.
+      - name: Armar el sitio
+        run: |
+          mkdir -p _sitio
+          cp index.html pantalla.html fichar.html panel.html config.js _sitio/
+          cp _sitio/index.html _sitio/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _sitio
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

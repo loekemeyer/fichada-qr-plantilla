@@ -48,18 +48,32 @@
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M4 12h16" stroke="#18D3C2" stroke-width="2.1" stroke-linecap="round"/></svg>
     </div>
     <h1>Fichada QR</h1>
-    <p class="sub">Control de presencia por código QR rotativo. Sin pedir ubicación.</p>
+    <p class="sub" id="sub">Control de presencia por código QR rotativo. Sin pedir ubicación.</p>
     <div class="links">
       <a class="tile" href="pantalla.html">
         <div class="ic">📺</div>
-        <div><b>Pantalla del trabajo</b><span>Abrir en el dispositivo fijo. Muestra el QR que rota.</span></div>
+        <div><b>Pantalla del depósito</b><span>Abrir en el dispositivo fijo. Muestra el QR que rota.</span></div>
+      </a>
+      <a class="tile" href="panel.html">
+        <div class="ic">📋</div>
+        <div><b>Panel de RR. HH.</b><span>Fichadas del día, horas, Excel y alta de operarios.</span></div>
       </a>
       <a class="tile" href="fichar.html">
         <div class="ic">📲</div>
-        <div><b>Fichar (demo)</b><span>La pantalla que se abre al escanear el QR.</span></div>
+        <div><b>Fichar</b><span>Se abre al escanear el QR. Por link directo no funciona.</span></div>
       </a>
     </div>
-    <footer>Plantilla · se configura por empresa (Supabase propio).<br>Guía en <b>README.md</b>.</footer>
+    <footer id="foot">Cada pantalla pide su propia clave.<br>Guía en <b>README.md</b>.</footer>
   </div>
+  <script src="config.js" onerror="window.__noCfg=true"></script>
+  <script>
+  (function(){
+    var cfg = window.FICHADA_CFG || {};
+    if (cfg.deposito){
+      document.getElementById("sub").textContent =
+        "Depósito " + cfg.deposito + " · control de presencia por QR rotativo.";
+    }
+  })();
+  </script>
 </body>
 </html>

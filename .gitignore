@@ -1,5 +1,5 @@
-# Config real de cada empresa (lleva la URL/anon de SU Supabase). Nunca subir.
-config.js
+# config.js SÍ se sube: solo lleva la URL y el anon key, que son públicos.
+# Los secretos (firma HMAC, clave de pantalla, clave de panel) viven en Postgres.
 
 # Basura del sistema / editores
 .DS_Store

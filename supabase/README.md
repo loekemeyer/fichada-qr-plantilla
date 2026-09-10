@@ -1,31 +1,38 @@
-# Backend (Supabase) — deploy por empresa
+# Backend (Supabase) — deploy por depósito
 
-Cada empresa usa **su propio proyecto Supabase**. Repetir estos pasos por empresa.
+Cada depósito usa su propio esquema `fichada`. Puede convivir con otras cosas en
+el mismo proyecto: **nada de lo que hay acá toca tablas ni funciones ajenas**.
+Los nombres están prefijados para que no choquen (`fichada.*`, `fichada_dep_*`,
+Edge Functions `deposito-*`).
 
-## 1. Crear el proyecto
+## 1. Aplicar las migraciones
 
-1. En https://supabase.com → **New project**. Elegí región cercana.
-2. Anotá el **Project URL** (`https://XXXX.supabase.co`) y el **anon key**
-   (Settings → API). El anon key es público, va en `config.js`.
+En el **SQL Editor** del proyecto, pegar y ejecutar **en orden**:
 
-## 2. Aplicar las migraciones
+1. `migrations/0001_esquema.sql` — esquema, tablas y config (genera al azar el
+   secreto de firma y las **dos** claves).
+2. `migrations/0002_funciones.sql` — firma/validación del token y máquina de estados.
+3. `migrations/0003_panel.sql` — la puerta del panel de RR. HH.
+4. `migrations/0004_datos_iniciales.sql` — padrón inicial. **Editar antes de correr.**
 
-En **SQL Editor** del proyecto, pegá y ejecutá **en orden**:
-
-1. `migrations/0001_schema.sql` — crea el esquema `fichada`, las tablas y la
-   config (genera al azar el secreto de firma y la clave de dispositivo).
-2. `migrations/0002_funciones.sql` — crea las funciones de firma/validación.
-
-## 3. Ver la clave de dispositivo (y el TTL)
+Requiere `pgcrypto` en el esquema `extensions` (en Supabase viene así por defecto):
 
 ```sql
-select clave_dispositivo, token_ttl_seg from fichada.config where id = 1;
+select n.nspname from pg_extension e
+  join pg_namespace n on n.oid = e.extnamespace where e.extname = 'pgcrypto';
 ```
 
-- `clave_dispositivo` → la usás en la pantalla: `pantalla.html#clave=ESA_CLAVE`.
-- `token_ttl_seg` → cuántos segundos vive cada código (por defecto **40**).
+## 2. Ver las claves
 
-Para **rotar** la clave (invalida la anterior):
+```sql
+select deposito, clave_dispositivo, clave_panel, token_ttl_seg
+  from fichada.config where id = 1;
+```
+
+- `clave_dispositivo` → `pantalla.html#clave=ESA_CLAVE`, en el dispositivo fijo.
+- `clave_panel` → se pega en la puerta de `panel.html`.
+
+Rotar una sin tocar la otra (invalida la anterior al instante):
 
 ```sql
 update fichada.config
@@ -33,77 +40,78 @@ update fichada.config
  where id = 1;
 ```
 
-Cambiar el nombre de la empresa y la zona horaria:
+## 3. Ajustar la jornada del depósito
+
+De acá salen los rojos del panel y la columna `Dif.`. Un solo lugar.
 
 ```sql
 update fichada.config
-   set empresa_nombre = 'ACME S.A.',
+   set deposito       = 'Virgilio',
+       hora_entrada   = '08:00',
+       hora_salida    = '17:00',
+       comida_min     = 30,     -- comida pactada, se descuenta del objetivo
+       tolerancia_min = 5,      -- sin esto, entrar 08:01 se pinta rojo
+       rebote_seg     = 120,    -- anti doble escaneo
        zona_horaria   = 'America/Argentina/Buenos_Aires'
  where id = 1;
 ```
 
-## 4. Cargar los correos habilitados
+Objetivo neto = (salida − entrada) − comida. Con 08:00–17:00 y 30 min → **8:30**.
 
-```sql
-insert into fichada.empleados (correo, nombre) values
-  ('ana@empresa.com',  'Ana Pérez'),
-  ('juan@empresa.com', 'Juan Gómez');
--- Dar de baja sin borrar:  update fichada.empleados set activo=false where correo='...';
-```
+## 4. Desplegar las Edge Functions
 
-## 5. Desplegar las Edge Functions
-
-Con la [CLI de Supabase](https://supabase.com/docs/guides/cli), logueada y
-enlazada al proyecto (`supabase link`):
+Con la [CLI de Supabase](https://supabase.com/docs/guides/cli) enlazada al proyecto:
 
 ```bash
-supabase functions deploy emitir-token --no-verify-jwt
-supabase functions deploy fichar       --no-verify-jwt
+supabase functions deploy deposito-emitir --no-verify-jwt
+supabase functions deploy deposito-marcar --no-verify-jwt
+supabase functions deploy deposito-panel  --no-verify-jwt
 ```
 
 `--no-verify-jwt` es a propósito: la autenticación real es la **clave de
-dispositivo** (emitir) y el **token firmado** (fichar), no un JWT de Supabase.
-`SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` ya están disponibles como env vars
-de las funciones — no hace falta configurarlas.
+dispositivo** (emitir), el **token firmado** (marcar) y la **clave de panel**.
+`SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` ya existen como env vars.
 
-## 6. Probar (curl, desde una máquina con internet)
+## 5. Probar (curl)
 
 ```bash
 BASE="https://XXXX.supabase.co/functions/v1"
 ANON="TU_ANON_KEY"
-CLAVE="TU_CLAVE_DE_DISPOSITIVO"
+DISP="TU_CLAVE_DE_DISPOSITIVO"
+H=(-H "apikey: $ANON" -H "Authorization: Bearer $ANON" -H "Content-Type: application/json")
 
-# emitir un token
-TOKEN=$(curl -s -X POST "$BASE/emitir-token" \
-  -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
-  -H "x-clave-dispositivo: $CLAVE" | sed -E 's/.*"token":"([^"]+)".*/\1/')
+TOKEN=$(curl -s -X POST "$BASE/deposito-emitir" "${H[@]}" \
+  -H "x-clave-dispositivo: $DISP" -d '{}' | sed -E 's/.*"token":"([^"]+)".*/\1/')
 
-# fichar con ese token
-curl -s -X POST "$BASE/fichar" \
-  -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
-  -H "Content-Type: application/json" \
-  -d "{\"token\":\"$TOKEN\",\"email\":\"ana@empresa.com\"}"
+# qué puede fichar (no consume el token)
+curl -s -X POST "$BASE/deposito-marcar" "${H[@]}" \
+  -d "{\"token\":\"$TOKEN\",\"email\":\"alguien@empresa.com\"}"
+
+# registrar la marca (consume el token)
+curl -s -X POST "$BASE/deposito-marcar" "${H[@]}" \
+  -d "{\"token\":\"$TOKEN\",\"email\":\"alguien@empresa.com\",\"tipo\":\"entrada\"}"
 ```
 
-Respuestas esperadas: `{"ok":true,"hora":"HH:MM"}`, luego `{"error":"ya_ficho",...}`
-al repetir; `{"error":"no_habilitado"}` con un correo fuera de la lista;
-`{"error":"token_vencido"}` con un token viejo.
+Errores esperados: `clave_invalida`, `token_vencido`, `token_invalido`,
+`token_usado` (replay), `no_habilitado`, `tipo_no_permitido`, `rebote`.
 
-## 7. (Opcional) Capa "solo desde la fábrica" por IP
+## 6. (Opcional) Capa "solo desde el depósito" por IP
 
-Requiere **IP pública fija y sin CGNAT** en la empresa.
+Requiere **IP pública fija y sin CGNAT**.
 
 ```sql
 update fichada.config set ip_trabajo = '200.x.x.x' where id = 1;
 ```
 
-Luego activar el chequeo en `functions/fichar/index.ts` (hay un bloque comentado
-que lee `x-forwarded-for`). Se saltea con VPN/datos móviles, por eso va como
+Falta activar el chequeo en `deposito-marcar` (leer `x-forwarded-for` y comparar
+del lado servidor). Se saltea con VPN o datos móviles, por eso va como
 **complemento** del QR rotativo, no como única defensa.
 
-## Modelo de seguridad (resumen)
+## Modelo de seguridad
 
-- Secreto de firma: **solo** en `fichada.config` (Postgres). Nunca en el navegador.
-- Funciones `SECURITY DEFINER`, ejecutables **solo por `service_role`**.
-- El esquema `fichada` no se expone en la API pública (PostgREST).
-- `UNIQUE(correo, fecha)` = 1 fichada por día, a prueba de carreras.
+- Secreto de firma y ambas claves: **solo** en `fichada.config`. Nunca en el navegador.
+- Funciones `SECURITY DEFINER` con `search_path = ''`, ejecutables **solo por `service_role`**.
+- El esquema `fichada` no se expone en la API pública: PostgREST solo ve `public`,
+  y las funciones de `public` tienen el `execute` revocado a `anon` y `authenticated`.
+- `jti` único en `fichada.marcas` = un token vale una sola marca.
+- El anon key es público por diseño: no alcanza para llegar a ninguna de estas funciones.
