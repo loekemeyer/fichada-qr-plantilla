@@ -1,6 +1,9 @@
 # Publica el sitio estático en GitHub Pages en cada push a main.
-# `enablement: true` habilita Pages solo la primera vez: no hace falta tocar
-# Settings a mano. El sitio es la raíz del repo (index / pantalla / fichar / panel).
+#
+# PASO MANUAL, UNA SOLA VEZ: Settings -> Pages -> Source: "GitHub Actions".
+# El token de Actions puede publicar, pero NO puede crear el sitio de Pages la
+# primera vez (devuelve "Resource not accessible by integration"), así que ese
+# switch hay que darlo a mano. Después de eso, cada push a main publica solo.
 name: Publicar en GitHub Pages
 
 on:
@@ -28,8 +31,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       # Solo el sitio: nada de supabase/ ni docs sueltos.
       - name: Armar el sitio

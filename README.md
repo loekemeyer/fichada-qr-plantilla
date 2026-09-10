@@ -82,8 +82,10 @@ fichadas viejas quedan para la liquidación.
    → Pasos detallados en [`supabase/README.md`](supabase/README.md).
 3. Cargar el padrón (panel → Operarios, o `0004_datos_iniciales.sql`).
 4. `config.js`: cambiar `deposito`, `supabaseUrl` y `supabaseAnon`.
-5. Publicar. El workflow `.github/workflows/pages.yml` sube el sitio a GitHub
-   Pages en cada push a `main`.
+5. Publicar. **Una sola vez:** Settings → Pages → Source: **GitHub Actions**.
+   El token de Actions puede publicar pero no puede *crear* el sitio de Pages,
+   así que ese switch va a mano. Después, `.github/workflows/pages.yml` sube el
+   sitio en cada push a `main`.
 6. Abrir `pantalla.html#clave=...` en el dispositivo fijo del depósito.
 
 ## Probar sin backend
