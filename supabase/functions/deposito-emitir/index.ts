@@ -1,9 +1,9 @@
 // ============================================================================
-// Edge Function: emitir-token
-// Cáscara HTTP + CORS. La lógica (validar clave de dispositivo, firmar el token)
-// vive en la función SQL public.fichada_emitir_token (solo service_role).
-// El secreto de firma NUNCA sale al navegador.
-// Deploy con --no-verify-jwt: la autenticación es la clave de dispositivo.
+// Edge Function: deposito-emitir
+// Cáscara HTTP. La lógica (validar clave de dispositivo, firmar el token) vive
+// en public.fichada_dep_emitir_token. El secreto NUNCA sale al navegador.
+// verify_jwt=false a propósito: la autenticación es la clave de dispositivo.
+// NO confundir con fichada-qr-emitir-token, que es del sistema viejo.
 // ============================================================================
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -21,8 +21,8 @@ Deno.serve(async (req: Request) => {
       status,
       headers: { ...cors, "Content-Type": "application/json" },
     });
+  if (req.method !== "POST") return json({ error: "metodo" }, 405);
 
-  // La clave de dispositivo llega por header (preferido) o en el body.
   let clave = req.headers.get("x-clave-dispositivo") ?? "";
   if (!clave) {
     try {
@@ -36,9 +36,11 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  const { data, error } = await supabase.rpc("fichada_emitir_token", { p_clave: clave });
-  if (error) return json({ error: "error_interno", detalle: error.message }, 500);
-
+  const { data, error } = await supabase.rpc("fichada_dep_emitir_token", { p_clave: clave });
+  if (error) {
+    console.error("fichada_dep_emitir_token:", error.message);
+    return json({ error: "error_interno" }, 500);
+  }
   const status = (data as { error?: string })?.error === "clave_invalida" ? 401 : 200;
   return json(data, status);
 });

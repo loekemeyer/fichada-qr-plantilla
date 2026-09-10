@@ -6,7 +6,7 @@
 <title>Fichar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root{
     --teal-bright:#18D3C2; --teal-mid:#0E9AA0; --teal-deep:#0C6E77;
@@ -16,6 +16,7 @@
     --ok:#0CA678; --err:#E03131; --warn:#E8912B;
     --sans:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --display:"Sora",var(--sans);
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -31,11 +32,13 @@
   .brand{font-weight:700;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--on-dark-dim);margin-bottom:20px;display:flex;align-items:center;gap:9px;}
   .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--teal-bright);box-shadow:0 0 0 4px rgba(24,211,194,.28);}
   .panel{
-    width:100%;background:var(--panel);border-radius:28px;padding:28px 24px 24px;
+    width:100%;background:var(--panel);border-radius:28px;padding:26px 22px 22px;
     box-shadow:0 28px 56px -22px rgba(6,20,26,.7), 0 3px 0 rgba(255,255,255,.7) inset;
   }
   h1{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.02em;color:var(--ink-strong);margin:0 0 4px;text-wrap:balance;}
-  .lead{margin:0 0 20px;color:var(--ink-soft);font-size:14px;line-height:1.5;}
+  .lead{margin:0 0 18px;color:var(--ink-soft);font-size:14px;line-height:1.5;}
+  .quien{margin:0 0 14px;font-size:13px;color:var(--ink-soft);}
+  .quien b{color:var(--ink-strong);}
   label.field{display:block;font-weight:700;font-size:12.5px;letter-spacing:.02em;color:var(--ink-strong);margin:0 0 7px;}
   .input{
     width:100%;font-family:var(--sans);font-size:16px;color:var(--ink-strong);
@@ -46,48 +49,102 @@
   .remember{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13.5px;color:var(--ink-soft);cursor:pointer;}
   .remember input{width:18px;height:18px;accent-color:var(--teal-mid);}
   .btn{
-    width:100%;margin-top:22px;font-family:var(--display);font-weight:700;font-size:16px;color:#fff;
+    width:100%;margin-top:18px;font-family:var(--display);font-weight:700;font-size:16px;color:#fff;
     background:linear-gradient(180deg,var(--teal-mid),var(--teal-deep));border:none;border-radius:16px;
-    padding:16px;cursor:pointer;transition:transform .1s, filter .15s;
+    padding:16px;cursor:pointer;transition:filter .15s;
     box-shadow:0 12px 24px -10px rgba(12,110,119,.7);
   }
-  .btn:hover{filter:brightness(1.05)} .btn:active{transform:translateY(1px)}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
   .btn:disabled{filter:grayscale(.4) brightness(.9);cursor:default}
-  .msg{margin-top:16px;border-radius:14px;padding:13px 15px;font-size:14px;font-weight:600;line-height:1.45;display:none;}
+  .btn.rojo{background:linear-gradient(180deg,#C25C5C,#9E4242);box-shadow:0 12px 24px -10px rgba(158,66,66,.7)}
+  .btn.gris{background:#C9D4D3;color:#7B8887;box-shadow:none}
+  .btn.link{background:none;color:var(--ink-soft);font-family:var(--sans);font-weight:600;font-size:13.5px;
+            box-shadow:none;padding:10px;margin-top:6px}
+
+  /* Las cuatro marcas. La que no aplica se muestra apagada CON el motivo:
+     si desaparece, el operario cree que la app está rota. */
+  .opciones{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .op{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+      border:1.6px solid #DCE6E5;border-radius:14px;padding:12px 13px;background:#fff;cursor:pointer;
+      font-family:var(--sans);transition:border-color .12s, background .12s}
+  .op .ic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;
+          background:var(--panel-soft);font-size:17px}
+  .op b{display:block;font-family:var(--display);font-size:14.5px;color:var(--ink-strong);line-height:1.2}
+  .op span{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+  .op[aria-pressed="true"]{border-color:var(--teal-mid);background:rgba(14,154,160,.07)}
+  .op.fin{border-color:#E7D2D2}
+  .op.fin[aria-pressed="true"]{border-color:#C25C5C;background:rgba(194,92,92,.07)}
+  .op[disabled]{border-style:dashed;border-color:#E4EAE9;opacity:.5;cursor:default}
+  .op[disabled] b{color:var(--ink-soft)}
+  .op:focus-visible{outline:2px solid var(--teal-mid);outline-offset:2px}
+
+  .msg{margin-top:14px;border-radius:14px;padding:13px 15px;font-size:13.5px;font-weight:600;line-height:1.45;display:none;}
   .msg.show{display:block}
   .msg--ok{background:rgba(12,166,120,.12);color:#075E45;border:1px solid rgba(12,166,120,.3);}
   .msg--err{background:rgba(224,49,49,.1);color:#B01919;border:1px solid rgba(224,49,49,.25);}
   .msg--warn{background:rgba(232,145,43,.12);color:#8A560F;border:1px solid rgba(232,145,43,.3);}
-  .result{display:none;text-align:center;padding:8px 0 4px;}
-  .result.show{display:block}
-  .result .tick{width:64px;height:64px;border-radius:50%;background:rgba(12,166,120,.14);display:grid;place-items:center;margin:0 auto 14px;}
-  .result h2{font-family:var(--display);font-size:24px;color:var(--ink-strong);margin:0 0 4px;}
-  .result .hora{font-size:34px;font-weight:800;color:var(--ok);font-variant-numeric:tabular-nums;margin:6px 0 2px;}
-  .result p{color:var(--ink-soft);font-size:14px;margin:6px 0 0;}
+  .msg b{font-family:var(--mono);font-weight:600}
+
+  .exito{text-align:center;padding:10px 0 4px;}
+  .exito .tick{width:64px;height:64px;border-radius:50%;background:rgba(12,166,120,.14);display:grid;place-items:center;margin:0 auto 14px;}
+  .exito .tipo{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);}
+  .exito .hora{font-family:var(--mono);font-size:40px;font-weight:600;color:var(--ok);line-height:1.1;margin:4px 0 0;}
+  .exito .nom{color:var(--ink-soft);font-size:13.5px;margin:8px 0 0;}
   .foot{margin-top:18px;font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--on-dark-dim);text-align:center;}
+  [hidden]{display:none!important}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
   <div class="stage">
     <div class="brand"><span class="dot"></span><span id="brand-name">Fichada</span></div>
     <div class="panel">
-      <div id="form-view">
-        <h1>Confirmá tu correo</h1>
-        <p class="lead">Registrás tu fichada del día. Verificá que el correo sea el tuyo.</p>
+
+      <!-- 1. Confirmar quién soy -->
+      <div id="v-correo">
+        <h1>Confirmá que sos vos</h1>
+        <p class="lead">Escribí tu correo. El sistema se fija solo qué te toca fichar.</p>
         <label class="field" for="email">Correo electrónico</label>
-        <input class="input" id="email" type="email" inputmode="email" autocomplete="email" placeholder="tu.correo@empresa.com" />
-        <label class="remember"><input type="checkbox" id="remember" checked> Recordar en este dispositivo</label>
-        <button class="btn" id="submit">Fichar</button>
-        <div class="msg" id="msg"></div>
+        <input class="input" id="email" type="email" inputmode="email" autocomplete="email"
+               placeholder="tu.correo@gmail.com" />
+        <label class="remember"><input type="checkbox" id="remember" checked> Recordar en este celular</label>
+        <button class="btn" id="continuar">Continuar</button>
+        <div class="msg" id="msg1"></div>
       </div>
-      <div class="result" id="result-view">
-        <div class="tick">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0CA678" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+      <!-- 2. Elegir qué ficho -->
+      <div id="v-elegir" hidden>
+        <h1 id="elegir-titulo">¿Qué estás fichando?</h1>
+        <p class="quien" id="elegir-quien"></p>
+        <div class="opciones" id="opciones"></div>
+        <button class="btn" id="fichar">Fichar</button>
+        <button class="btn link" id="cambiar">No soy yo, cambiar correo</button>
+        <div class="msg" id="msg2"></div>
+      </div>
+
+      <!-- 3. Se va con la comida abierta -->
+      <div id="v-aviso" hidden>
+        <h1>No fichaste el fin de tu comida</h1>
+        <p class="lead" id="aviso-detalle"></p>
+        <div class="msg msg--warn show">Tu marca se va a registrar igual, pero el día queda incompleto
+          y no se pueden calcular tus horas. <b>Avisale a RR. HH.</b> para que lo corrija.</div>
+        <button class="btn rojo" id="aviso-si">Entendido, fichar igual</button>
+        <button class="btn link" id="aviso-no">Volver</button>
+      </div>
+
+      <!-- 4. Listo -->
+      <div id="v-ok" hidden>
+        <div class="exito">
+          <div class="tick">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0CA678" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="tipo" id="ok-tipo">Registrada</div>
+          <div class="hora" id="ok-hora">--:--</div>
+          <p class="nom" id="ok-nom"></p>
         </div>
-        <h2 id="result-title">¡Fichado!</h2>
-        <div class="hora" id="result-hora">--:--</div>
-        <p id="result-sub">Registro guardado.</p>
       </div>
+
     </div>
     <p class="foot" id="foot">Fichada por QR</p>
   </div>
@@ -95,86 +152,202 @@
   <script src="config.js" onerror="window.__noCfg=true"></script>
   <script>
   (function(){
+    "use strict";
     var cfg = window.FICHADA_CFG || {};
     var backend = !!(cfg.supabaseUrl && cfg.supabaseUrl.indexOf("XXXX") === -1 && cfg.supabaseAnon);
     var token = new URLSearchParams(location.search).get("t") || "";
-    var LS = "fichada.email";
+    var LS = "fichada.correo";
 
     var $ = function(id){ return document.getElementById(id); };
-    $("brand-name").textContent = cfg.empresa || "Fichada";
-    $("foot").textContent = (cfg.empresa || "Fichada") + " · por QR";
+    var dep = cfg.deposito ? ("Depósito " + cfg.deposito) : "Fichada";
+    $("brand-name").textContent = dep;
+    $("foot").textContent = dep + " · por QR";
 
-    // correo recordado
-    try{ var saved = localStorage.getItem(LS); if (saved) $("email").value = saved; }catch(e){}
+    // Catálogo de marcas. Entrada y regreso no se eligen: se deducen.
+    var MARCAS = {
+      entrada:    {tit:"Entrada",            ic:"🚪", sub:"Empiezo mi jornada",       ok:"Entrada registrada"},
+      regreso:    {tit:"Regreso",            ic:"↩️", sub:"Vuelvo al depósito",       ok:"Regreso registrado"},
+      comida_ini: {tit:"Inicio comida",      ic:"🍽️", sub:"Paro para comer",          ok:"Inicio de comida"},
+      comida_fin: {tit:"Fin comida",         ic:"▶️", sub:"Vuelvo a trabajar",        ok:"Fin de comida"},
+      salida:     {tit:"Permiso",            ic:"🚶", sub:"Médico, trámite, y vuelvo",ok:"Salida por permiso"},
+      fin:        {tit:"Finalizar jornada",  ic:"🏠", sub:"Me voy a casa",            ok:"Fin de jornada"}
+    };
+    var MENU = ["comida_ini","comida_fin","salida","fin"];
 
-    if (!token){
-      showMsg("warn", "Abrí esta página escaneando el QR de la pantalla de fichada. No entres por link directo.");
-      $("submit").disabled = true;
-    }
-
-    function showMsg(kind, text){
-      var m = $("msg"); m.className = "msg show msg--" + kind; m.textContent = text;
-    }
-    function isEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
-
-    var ERRORS = {
-      token_vencido:   ["warn", "El código venció. Volvé a la pantalla y escaneá el QR nuevo."],
-      token_invalido:  ["err",  "Código inválido. Escaneá el QR de la pantalla de fichada."],
-      no_habilitado:   ["err",  "Tu correo no está habilitado para fichar. Avisá a RR. HH."],
-      faltan_datos:    ["warn", "Faltan datos. Revisá el correo."],
-      sin_config:      ["err",  "El sistema no está configurado. Avisá a soporte."],
-      error_interno:   ["err",  "Error del servidor. Reintentá en unos segundos."],
-      body_invalido:   ["err",  "No se pudo enviar. Reintentá."],
-      metodo:          ["err",  "No se pudo enviar. Reintentá."]
+    var ERRORES = {
+      token_vencido:    ["warn","El código venció. Volvé a la pantalla del depósito y escaneá el QR que está ahora."],
+      token_invalido:   ["err", "Código inválido. Escaneá el QR de la pantalla del depósito."],
+      token_usado:      ["warn","Ese código ya se usó. Escaneá el QR de nuevo."],
+      no_habilitado:    ["err", "Ese correo no puede fichar acá. Revisá que esté bien escrito; si está bien, avisale a RR. HH."],
+      tipo_no_permitido:["warn","Eso no se puede fichar ahora. Volvé a escanear el QR."],
+      faltan_datos:     ["warn","Faltan datos. Revisá el correo."],
+      sin_config:       ["err", "El sistema no está configurado. Avisale a soporte."],
+      error_interno:    ["err", "Error del servidor. Reintentá en unos segundos."],
+      body_invalido:    ["err", "No se pudo enviar. Reintentá."],
+      metodo:           ["err", "No se pudo enviar. Reintentá."],
+      clave_invalida:   ["err", "No se pudo enviar. Reintentá."],
+      op_desconocida:   ["err", "No se pudo enviar. Reintentá."]
     };
 
-    async function enviar(email){
-      if (!backend){
-        // Demo sin backend: simula un OK con la hora actual.
-        var now = new Date();
-        return { ok:true, hora: String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0"), __demo:true };
-      }
-      var r = await fetch(cfg.supabaseUrl + cfg.fnFichar, {
+    var estado = null, elegido = null, correo = "";
+
+    function vista(id){
+      ["v-correo","v-elegir","v-aviso","v-ok"].forEach(function(v){ $(v).hidden = (v !== id); });
+    }
+    function msg(cual, kind, texto){
+      var m = $(cual); m.className = "msg show msg--" + kind; m.innerHTML = texto;
+    }
+    function limpiar(cual){ $(cual).className = "msg"; }
+    function esCorreo(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+
+    if (!token){
+      msg("msg1","warn","Abrí esta página escaneando el QR de la pantalla del depósito. Por link directo no funciona.");
+      $("continuar").disabled = true;
+    }
+    try{ var guardado = localStorage.getItem(LS); if (guardado) $("email").value = guardado; }catch(e){}
+
+    async function llamar(body){
+      if (!backend) throw new Error("__sin_backend");
+      var r = await fetch(cfg.supabaseUrl + cfg.fnMarcar, {
         method:"POST",
-        headers:{ "Content-Type":"application/json", "apikey":cfg.supabaseAnon, "Authorization":"Bearer "+cfg.supabaseAnon },
-        body: JSON.stringify({ token: token, email: email })
+        headers:{ "Content-Type":"application/json", "apikey":cfg.supabaseAnon,
+                  "Authorization":"Bearer "+cfg.supabaseAnon },
+        body: JSON.stringify(body)
       });
       return await r.json();
     }
+    function mostrarError(cual, d){
+      var e = ERRORES[d && d.error] || ["err","No se pudo fichar. Reintentá."];
+      msg(cual, e[0], e[1]);
+    }
 
-    $("submit").addEventListener("click", async function(){
-      var email = ($("email").value || "").trim().toLowerCase();
-      if (!isEmail(email)){ showMsg("warn","Ingresá un correo válido."); $("email").focus(); return; }
-
+    // ---- paso 1: quién sos -------------------------------------------------
+    $("continuar").addEventListener("click", async function(){
+      var v = ($("email").value || "").trim().toLowerCase();
+      if (!esCorreo(v)){ msg("msg1","warn","Ingresá un correo válido."); $("email").focus(); return; }
       try{
-        if ($("remember").checked) localStorage.setItem(LS, email); else localStorage.removeItem(LS);
+        if ($("remember").checked) localStorage.setItem(LS, v); else localStorage.removeItem(LS);
       }catch(e){}
 
-      $("submit").disabled = true; $("submit").textContent = "Enviando…";
-      $("msg").className = "msg";
+      correo = v; limpiar("msg1");
+      $("continuar").disabled = true; $("continuar").textContent = "Buscando…";
       try{
-        var d = await enviar(email);
-        if (d && d.ok){
-          $("form-view").style.display = "none";
-          $("result-view").className = "result show";
-          $("result-hora").textContent = d.hora || "--:--";
-          $("result-sub").textContent = d.__demo ? "Vista previa (sin backend)." : "Registro guardado. Buen día.";
-        } else if (d && d.error === "ya_ficho"){
-          $("form-view").style.display = "none";
-          $("result-view").className = "result show";
-          $("result-title").textContent = "Ya fichaste hoy";
-          $("result-hora").textContent = d.hora || "--:--";
-          $("result-sub").textContent = "Tu fichada de hoy ya quedó registrada.";
-        } else {
-          var e = ERRORS[(d && d.error)] || ["err","No se pudo fichar. Reintentá."];
-          showMsg(e[0], e[1]);
-          $("submit").disabled = false; $("submit").textContent = "Fichar";
-        }
+        var d = await llamar({ token: token, email: correo });
+        if (!d || !d.ok){ mostrarError("msg1", d); return; }
+        estado = d; pintarElegir();
       }catch(err){
-        showMsg("err","Sin conexión. Revisá la red e intentá de nuevo.");
-        $("submit").disabled = false; $("submit").textContent = "Fichar";
+        msg("msg1","err", err.message === "__sin_backend"
+          ? "Falta la configuración del depósito (config.js). Avisale a soporte."
+          : "Sin conexión. Buscá señal y reintentá.");
+      }finally{
+        $("continuar").disabled = false; $("continuar").textContent = "Continuar";
       }
     });
+    $("email").addEventListener("keydown", function(ev){
+      if (ev.key === "Enter") $("continuar").click();
+    });
+
+    // ---- paso 2: qué fichás ------------------------------------------------
+    function motivoApagado(tipo){
+      if (tipo === "comida_fin") return "Marcá el inicio primero";
+      if (tipo === "comida_ini" && estado.comida_abierta)
+        return "Ya la empezaste " + (estado.ultima_hora || "");
+      return "No corresponde ahora";
+    }
+
+    function pintarElegir(){
+      var perm = estado.permitidos || [];
+      $("elegir-quien").innerHTML = "<b>" + estado.nombre + "</b> · Legajo " + estado.legajo
+        + " · " + estado.empresa;
+
+      if (estado.rebote){
+        msg("msg2","warn","Acabás de fichar" + (estado.ultima_hora
+            ? " (" + MARCAS[estado.ultimo_tipo].tit.toLowerCase() + " a las <b>" + estado.ultima_hora + "</b>)"
+            : "") + ". Esperá un momento y escaneá el QR de nuevo.");
+      } else limpiar("msg2");
+
+      // Solo una opción posible (entrada o regreso): no hay nada que elegir.
+      if (perm.length === 1 && (perm[0] === "entrada" || perm[0] === "regreso")){
+        elegido = perm[0];
+        $("elegir-titulo").textContent = "Confirmá que sos vos";
+        $("opciones").innerHTML = "";
+        $("fichar").textContent = "Fichar " + MARCAS[elegido].tit.toLowerCase();
+      } else {
+        elegido = perm[0] || null;
+        $("elegir-titulo").textContent = "¿Qué estás fichando?";
+        $("opciones").innerHTML = MENU.map(function(t){
+          var m = MARCAS[t], hab = perm.indexOf(t) !== -1;
+          return '<button type="button" class="op' + (t === "fin" ? " fin" : "") + '"'
+            + ' data-tipo="' + t + '"' + (hab ? '' : ' disabled')
+            + ' aria-pressed="' + (hab && t === elegido ? "true" : "false") + '">'
+            + '<span class="ic" aria-hidden="true">' + m.ic + '</span>'
+            + '<span><b>' + m.tit + '</b><span>' + (hab ? m.sub : motivoApagado(t)) + '</span></span>'
+            + '</button>';
+        }).join("");
+        actualizarBoton();
+      }
+      $("fichar").disabled = !!estado.rebote;
+      vista("v-elegir");
+    }
+
+    function actualizarBoton(){
+      $("fichar").textContent = elegido
+        ? "Fichar " + MARCAS[elegido].tit.toLowerCase()
+        : "Elegí una opción";
+      $("fichar").disabled = !elegido || !!estado.rebote;
+    }
+
+    $("opciones").addEventListener("click", function(ev){
+      var b = ev.target.closest("button.op");
+      if (!b || b.disabled) return;
+      elegido = b.dataset.tipo;
+      Array.prototype.forEach.call($("opciones").querySelectorAll(".op"), function(o){
+        o.setAttribute("aria-pressed", String(o === b));
+      });
+      limpiar("msg2"); actualizarBoton();
+    });
+
+    $("cambiar").addEventListener("click", function(){
+      estado = null; elegido = null; limpiar("msg1"); vista("v-correo"); $("email").focus();
+    });
+
+    $("fichar").addEventListener("click", function(){
+      if (!elegido) return;
+      // Se va (o sale) con la comida abierta: avisar antes, pero dejarlo fichar.
+      if (estado.comida_abierta && (elegido === "salida" || elegido === "fin")){
+        $("aviso-detalle").innerHTML = "Empezaste a comer a las <b>"
+          + (estado.ultima_hora || "—") + "</b> y nunca marcaste cuándo volviste a trabajar.";
+        vista("v-aviso"); return;
+      }
+      enviar();
+    });
+
+    $("aviso-no").addEventListener("click", function(){ vista("v-elegir"); });
+    $("aviso-si").addEventListener("click", function(){ vista("v-elegir"); enviar(); });
+
+    async function enviar(){
+      $("fichar").disabled = true; $("fichar").textContent = "Enviando…";
+      limpiar("msg2");
+      try{
+        var d = await llamar({ token: token, email: correo, tipo: elegido });
+        if (d && d.ok){
+          $("ok-tipo").textContent = MARCAS[d.tipo] ? MARCAS[d.tipo].ok : "Registrada";
+          $("ok-hora").textContent = d.hora || "--:--";
+          $("ok-nom").textContent  = d.nombre + " · Legajo " + d.legajo;
+          vista("v-ok");
+          return;
+        }
+        if (d && d.error === "rebote"){
+          msg("msg2","warn","Acabás de fichar. No se registró nada nuevo. Esperá un momento y escaneá el QR de nuevo.");
+        } else {
+          mostrarError("msg2", d);
+        }
+      }catch(err){
+        msg("msg2","err","Sin conexión. No se guardó nada. Buscá señal y escaneá el QR de nuevo.");
+      }finally{
+        actualizarBoton();
+      }
+    }
   })();
   </script>
 </body>
