@@ -182,6 +182,7 @@
   @media (max-width:420px){ .campos{grid-template-columns:1fr} }
   .campo label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.07em;
                text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+  .campo .volver{font-size:11.5px;margin-top:5px}
   .form .pie{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
   .form .err{font-size:12px;font-weight:600;color:var(--bad);flex:1 1 100%}
   .form .ayuda{margin:-6px 0 12px;font-size:12.5px;color:var(--ink-2);line-height:1.5;max-width:70ch}
@@ -317,8 +318,11 @@
         <div class="campo"><label for="fMail">Correo</label>
           <input type="email" id="fMail" placeholder="ana.perez@gmail.com"></div>
         <div class="campo"><label for="fEmp">Empresa</label>
-          <input type="text" id="fEmp" list="empresasList" placeholder="Loeke">
-          <datalist id="empresasList"></datalist></div>
+          <select id="fEmp"></select>
+          <input type="text" id="fEmpNueva" placeholder="Nombre de la empresa nueva"
+                 autocomplete="off" spellcheck="false" hidden>
+          <button type="button" class="link volver" id="fEmpVolver" hidden>← elegir de la lista</button>
+        </div>
       </div>
       <div class="pie">
         <span class="err" id="fErr" hidden></span>
@@ -522,8 +526,28 @@
     };
     $("filtroEmp").innerHTML  = botones("emp",  empFiltro);
     $("filtroEmpG").innerHTML = botones("empg", empFiltroG);
-    $("empresasList").innerHTML = EMPRESAS.map(function(e){
-      return '<option value="' + esc(e) + '">'; }).join("");
+    // Si está tipeando una empresa nueva, no le pisamos el campo.
+    if ($("fEmpNueva").hidden) pintarSelectEmpresas($("fEmp").value);
+  }
+
+  // Desplegable real. La última opción abre un campo de texto en la misma celda,
+  // para cuando entra una empresa que todavía no está en el padrón.
+  function pintarSelectEmpresas(sel){
+    $("fEmp").innerHTML = EMPRESAS.map(function(e){
+        return '<option value="' + esc(e) + '"' + (e === sel ? ' selected' : '') + '>'
+             + esc(e) + '</option>'; }).join("")
+      + '<option value="__nueva">+ Otra empresa…</option>';
+  }
+
+  function modoEmpresaNueva(activo){
+    $("fEmp").hidden = activo;
+    $("fEmpNueva").hidden = !activo;
+    $("fEmpVolver").hidden = !activo;
+    if (activo) $("fEmpNueva").focus();
+  }
+
+  function empresaElegida(){
+    return $("fEmpNueva").hidden ? $("fEmp").value : $("fEmpNueva").value.trim();
   }
 
   var DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
@@ -764,7 +788,10 @@
     $("fNom").value = g ? g.nombre : "";
     $("fLeg").value = g ? g.legajo : "";
     $("fMail").value = g ? g.correo : "";
-    $("fEmp").value = g ? g.empresa : (EMPRESAS[0] || "");
+    $("fEmpNueva").value = "";
+    pintarSelectEmpresas(g ? g.empresa : (EMPRESAS[0] || ""));
+    // Sin empresas cargadas todavía, no hay lista de dónde elegir.
+    modoEmpresaNueva(!EMPRESAS.length);
     $("fErr").hidden = true; $("formBox").hidden = false; $("fNom").focus();
   }
   function cerrarForm(){ $("formBox").hidden = true; editandoG = null; }
@@ -787,7 +814,7 @@
       nombre: $("fNom").value.trim(),
       legajo: $("fLeg").value.trim(),
       correo: $("fMail").value.trim().toLowerCase(),
-      empresa: $("fEmp").value.trim(),
+      empresa: empresaElegida(),
       activo: true
     };
     $("guardarG").disabled = true;
@@ -837,6 +864,10 @@
     }
     if (b.id === "dCopiar"){ copiarEnlacePantalla(); return; }
     if (b.id === "nuevo"){ abrirForm(null); return; }
+    if (b.id === "fEmpVolver"){
+      modoEmpresaNueva(false); $("fEmpNueva").value = "";
+      pintarSelectEmpresas(EMPRESAS[0] || ""); return;
+    }
     if (b.id === "cancelarG"){ cerrarForm(); return; }
     if (b.id === "guardarG"){ guardarG(); return; }
     if (b.id === "verBajas"){ verBajas = !verBajas; pintarG(); return; }
@@ -997,6 +1028,9 @@
   $("exportar").addEventListener("click", exportar);
   $("buscar").addEventListener("input", pintar);
   $("buscarG").addEventListener("input", pintarG);
+  $("fEmp").addEventListener("change", function(){
+    if ($("fEmp").value === "__nueva") modoEmpresaNueva(true);
+  });
   $("fecha").addEventListener("change", function(){
     editando = null; borrador = null; abierta = null; cargarDia($("fecha").value);
   });
