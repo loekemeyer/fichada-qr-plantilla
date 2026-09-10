@@ -13,7 +13,8 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const OPS = ["dia", "empleados", "guardar_empleado", "baja_empleado", "guardar_marcas"];
+const OPS = ["dia", "empleados", "guardar_empleado", "baja_empleado", "guardar_marcas",
+             "clave_dispositivo", "cambiar_clave"];
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });

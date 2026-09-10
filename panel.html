@@ -184,6 +184,14 @@
                text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
   .form .pie{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
   .form .err{font-size:12px;font-weight:600;color:var(--bad);flex:1 1 100%}
+  .form .ayuda{margin:-6px 0 12px;font-size:12.5px;color:var(--ink-2);line-height:1.5;max-width:70ch}
+  .campos2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:560px}
+  @media (max-width:520px){ .campos2{grid-template-columns:1fr} }
+  .actual{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface-2);
+          border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:12px}
+  .actual span{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+               color:var(--ink-3)}
+  .actual code{font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:.02em}
 
   .note{display:flex;gap:9px;align-items:flex-start;background:var(--surface);
         border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r);
@@ -235,6 +243,7 @@
   <div class="tabs" role="tablist">
     <button class="tab" id="tabFich"  role="tab" aria-selected="true">Fichadas</button>
     <button class="tab" id="tabGente" role="tab" aria-selected="false">Operarios</button>
+    <button class="tab" id="tabAjustes" role="tab" aria-selected="false">Ajustes</button>
   </div>
 
   <div id="vistaFich" style="display:flex;flex-direction:column;gap:16px">
@@ -333,6 +342,61 @@
       <span><b>El correo es la identidad.</b> Es lo que el operario escribe al fichar, así que no puede
       repetirse entre dos personas. Al dar de baja no se borra nada: deja de poder fichar, pero sus
       fichadas viejas quedan intactas para la liquidación.</span>
+    </p>
+  </div>
+
+  <div id="vistaAjustes" hidden style="flex-direction:column;gap:16px">
+
+    <div class="form">
+      <h3>Clave del panel</h3>
+      <p class="ayuda">La que abre esta pantalla. Al cambiarla, los demás dispositivos que la tenían
+        recordada vuelven a la puerta; este sigue adentro con la nueva. Mínimo 12 caracteres,
+        sin espacios.</p>
+      <div class="campos2">
+        <div class="campo"><label for="pNueva">Clave nueva</label>
+          <input type="text" id="pNueva" autocomplete="off" spellcheck="false"
+                 placeholder="mínimo 12 caracteres"></div>
+        <div class="campo"><label for="pRep">Repetir</label>
+          <input type="text" id="pRep" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div class="pie">
+        <span class="err" id="pErr" hidden></span>
+        <button class="cta" id="pGuardar">Cambiar clave del panel</button>
+        <button class="chip" data-azar="p">Generar al azar</button>
+      </div>
+    </div>
+
+    <div class="form">
+      <h3>Clave de la pantalla del depósito</h3>
+      <p class="ayuda">La que va en el enlace de <code>pantalla.html</code>. Cambiala si alguien
+        fotografió la barra de direcciones del dispositivo fijo. <b>Ojo:</b> apenas la cambies, la
+        pantalla del depósito deja de emitir códigos hasta que la vuelvas a abrir con el enlace nuevo,
+        y mientras tanto nadie puede fichar.</p>
+      <div class="actual">
+        <span>Clave actual</span>
+        <code id="dActual">••••••••••••</code>
+        <button class="link" id="dVer">Mostrar</button>
+        <button class="link" id="dCopiar">Copiar enlace de la pantalla</button>
+      </div>
+      <div class="campos2">
+        <div class="campo"><label for="dNueva">Clave nueva</label>
+          <input type="text" id="dNueva" autocomplete="off" spellcheck="false"
+                 placeholder="mínimo 12 caracteres"></div>
+        <div class="campo"><label for="dRep">Repetir</label>
+          <input type="text" id="dRep" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div class="pie">
+        <span class="err" id="dErr" hidden></span>
+        <button class="cta" id="dGuardar">Cambiar clave de la pantalla</button>
+        <button class="chip" data-azar="d">Generar al azar</button>
+      </div>
+    </div>
+
+    <p class="note">
+      <span aria-hidden="true">▲</span>
+      <span><b>Son dos claves independientes y conviene que sigan siéndolo.</b> Si se filtra la de la
+      pantalla —que está a la vista de cualquiera que pase por el depósito— el panel sigue cerrado.
+      El sistema no te deja poner la misma en las dos.</span>
     </p>
   </div>
 
@@ -711,7 +775,10 @@
     correo_invalido: "El correo no es válido.",
     faltan_datos:    "Faltan datos: nombre, legajo y empresa son obligatorios.",
     no_existe:       "Ese operario ya no existe. Recargá la página.",
-    clave_invalida:  "La clave del panel dejó de ser válida. Recargá la página."
+    clave_invalida:  "La clave del panel dejó de ser válida. Recargá la página.",
+    clave_corta:       "Muy corta: mínimo 12 caracteres.",
+    clave_con_espacios:"No puede tener espacios.",
+    claves_iguales:    "No puede ser igual a la otra clave. Si se filtra una, la otra tiene que seguir sirviendo."
   };
 
   async function guardarG(){
@@ -742,14 +809,33 @@
     var b = ev.target.closest ? ev.target.closest("button") : null;
     if (!b) return;
 
-    if (b.id === "tabFich" || b.id === "tabGente"){
-      var f = b.id === "tabFich";
-      $("tabFich").setAttribute("aria-selected", String(f));
-      $("tabGente").setAttribute("aria-selected", String(!f));
-      $("vistaFich").hidden = !f;  $("vistaFich").style.display = f ? "flex" : "none";
-      $("vistaGente").hidden = f;  $("vistaGente").style.display = f ? "none" : "flex";
+    if (b.id === "tabFich" || b.id === "tabGente" || b.id === "tabAjustes"){
+      [["tabFich","vistaFich"],["tabGente","vistaGente"],["tabAjustes","vistaAjustes"]]
+        .forEach(function(par){
+          var activa = par[0] === b.id;
+          $(par[0]).setAttribute("aria-selected", String(activa));
+          $(par[1]).hidden = !activa;
+          $(par[1]).style.display = activa ? "flex" : "none";
+        });
+      if (b.id === "tabAjustes") cargarClaveDispositivo();
       return;
     }
+    if (b.dataset.azar){
+      var campo = b.dataset.azar === "p" ? ["pNueva","pRep"] : ["dNueva","dRep"];
+      var v = alAzar();
+      $(campo[0]).value = v; $(campo[1]).value = v;
+      $(b.dataset.azar === "p" ? "pErr" : "dErr").hidden = true;
+      return;
+    }
+    if (b.id === "pGuardar"){ cambiarClave("panel"); return; }
+    if (b.id === "dGuardar"){ cambiarClave("dispositivo"); return; }
+    if (b.id === "dVer"){
+      var mostrando = b.textContent === "Ocultar";
+      $("dActual").textContent = mostrando ? "••••••••••••" : (CLAVE_DISP || "—");
+      b.textContent = mostrando ? "Mostrar" : "Ocultar";
+      return;
+    }
+    if (b.id === "dCopiar"){ copiarEnlacePantalla(); return; }
     if (b.id === "nuevo"){ abrirForm(null); return; }
     if (b.id === "cancelarG"){ cerrarForm(); return; }
     if (b.id === "guardarG"){ guardarG(); return; }
@@ -809,6 +895,80 @@
       return;
     }
   });
+
+  // ------------------------------------------------------------ claves
+  var CLAVE_DISP = "";
+
+  function alAzar(){
+    var abc = "abcdefghijkmnpqrstuvwxyz23456789";   // sin l/o/0/1: se confunden al dictarlas
+    var out = "", r = new Uint32Array(20);
+    if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(r);
+    else for (var j = 0; j < 20; j++) r[j] = Math.floor(Math.random() * 4294967296);
+    for (var i = 0; i < 20; i++) out += abc[r[i] % abc.length];
+    return out;
+  }
+
+  async function cargarClaveDispositivo(){
+    if (CLAVE_DISP) return;
+    var d;
+    try { d = await api("clave_dispositivo", {}); } catch(e){ return; }
+    if (d && d.ok) CLAVE_DISP = d.clave;
+  }
+
+  function enlacePantalla(){
+    return location.origin + location.pathname.replace(/panel\.html$/, "")
+         + "pantalla.html#clave=" + encodeURIComponent(CLAVE_DISP);
+  }
+
+  async function copiarEnlacePantalla(){
+    await cargarClaveDispositivo();
+    if (!CLAVE_DISP){ toast("No se pudo leer la clave de la pantalla."); return; }
+    var url = enlacePantalla();
+    try{
+      await navigator.clipboard.writeText(url);
+      toast("Enlace copiado. Abrilo en el dispositivo fijo del depósito.");
+    }catch(e){
+      window.prompt("Copiá este enlace y abrilo en el dispositivo del depósito:", url);
+    }
+  }
+
+  async function cambiarClave(cual){
+    var esPanel = cual === "panel";
+    var idN = esPanel ? "pNueva" : "dNueva", idR = esPanel ? "pRep" : "dRep";
+    var idE = esPanel ? "pErr" : "dErr", idB = esPanel ? "pGuardar" : "dGuardar";
+    var nueva = $(idN).value.trim(), rep = $(idR).value.trim();
+
+    function err(t){ $(idE).textContent = t; $(idE).hidden = false; }
+    $(idE).hidden = true;
+    if (nueva.length < 12) return err("Muy corta: mínimo 12 caracteres.");
+    if (/\s/.test(nueva))  return err("No puede tener espacios.");
+    if (nueva !== rep)     return err("Las dos no coinciden.");
+
+    if (!esPanel && !window.confirm(
+        "La pantalla del depósito va a dejar de emitir códigos hasta que la reabras con el enlace "
+      + "nuevo. Mientras tanto nadie puede fichar.\n\n¿Seguimos?")) return;
+
+    $(idB).disabled = true;
+    var d;
+    try { d = await api("cambiar_clave", { cual: cual, nueva: nueva }); }
+    catch(e){ d = null; }
+    $(idB).disabled = false;
+
+    if (!d || d.error){ return err((d && ERR_G[d.error]) || "No se pudo cambiar. Reintentá."); }
+
+    $(idN).value = ""; $(idR).value = "";
+    if (esPanel){
+      // Esta sesión sigue adentro: se queda con la nueva.
+      CLAVE = nueva;
+      try{ if (localStorage.getItem(LS)) localStorage.setItem(LS, nueva); }catch(e){}
+      toast("Clave del panel cambiada. Los otros dispositivos van a tener que ponerla de nuevo.");
+    } else {
+      CLAVE_DISP = nueva;
+      $("dActual").textContent = "••••••••••••";
+      $("dVer").textContent = "Mostrar";
+      toast("Clave de la pantalla cambiada. Reabrí la pantalla del depósito con el enlace nuevo.");
+    }
+  }
 
   function exportar(){
     if (typeof XLSX === "undefined"){ toast("No se pudo cargar el generador de Excel."); return; }

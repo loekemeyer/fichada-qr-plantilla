@@ -66,7 +66,13 @@ Son **independientes a propósito**: si se filtra la de la pantalla, el panel si
 - **Clave de panel** → `panel.html`, se pega en la puerta (o `panel.html#clave=LA_CLAVE`).
   El panel la guarda en ese dispositivo y la borra de la barra de direcciones.
 
-Ambas salen de `fichada.config`. Para verlas o rotarlas, ver `supabase/README.md`.
+Ambas se rotan desde el panel → pestaña **Ajustes**, sin entrar a Supabase. Ahí
+también se ve la clave de la pantalla y se copia su enlace armado, para montar el
+dispositivo fijo sin transcribir nada a mano.
+
+El panel **nunca** muestra su propia clave: quien está adentro ya la tiene, y así
+no viaja por la red de más. Si la perdiste, se recupera por SQL
+(ver `supabase/README.md`).
 
 ## Dar de alta un operario
 

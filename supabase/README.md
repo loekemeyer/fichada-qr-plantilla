@@ -32,7 +32,8 @@ select deposito, clave_dispositivo, clave_panel, token_ttl_seg
 - `clave_dispositivo` → `pantalla.html#clave=ESA_CLAVE`, en el dispositivo fijo.
 - `clave_panel` → se pega en la puerta de `panel.html`.
 
-Rotar una sin tocar la otra (invalida la anterior al instante):
+Lo normal es rotarlas desde el panel → **Ajustes**. Esto es el plan B, para
+cuando se perdió la clave del panel y no se puede entrar:
 
 ```sql
 update fichada.config

@@ -10,7 +10,7 @@ returns json language plpgsql security definer set search_path = '' as $$
 declare
   v_clave text; v_tz text; v_fecha date; v_id bigint;
   v_correo text; v_legajo text; v_nombre text; v_empresa text; v_activo boolean;
-  v_marca jsonb; v_n int := 0;
+  v_marca jsonb; v_n int := 0; v_cual text; v_nueva text;
 begin
   select clave_panel, zona_horaria into v_clave, v_tz from fichada.config where id = 1;
   if v_clave is null then return json_build_object('error','sin_config'); end if;
@@ -127,6 +127,38 @@ begin
       end if;
     end loop;
     return json_build_object('ok', true, 'marcas', v_n);
+
+  -- ------------------------------------------------- ver la clave del depósito
+  -- Para re-armar la pantalla fija sin entrar a Supabase. La del panel NO se
+  -- devuelve nunca: quien está adentro ya la tiene, y así no queda en la red.
+  elsif p_op = 'clave_dispositivo' then
+    return json_build_object('ok', true,
+      'clave', (select clave_dispositivo from fichada.config where id = 1));
+
+  -- ------------------------------------------------------- rotar una clave
+  -- Invalida la anterior al instante. La del panel deja afuera a los otros
+  -- dispositivos que la tenían recordada; la de la pantalla corta el QR hasta
+  -- que se reabra la pantalla del depósito con la clave nueva.
+  elsif p_op = 'cambiar_clave' then
+    v_cual  := coalesce(p_payload->>'cual','');
+    v_nueva := coalesce(p_payload->>'nueva','');
+    if v_cual not in ('panel','dispositivo') then
+      return json_build_object('error','op_desconocida');
+    end if;
+    if v_nueva ~ '\s' then return json_build_object('error','clave_con_espacios'); end if;
+    if length(v_nueva) < 12 then return json_build_object('error','clave_corta'); end if;
+    if v_cual = 'panel' then
+      if v_nueva = (select clave_dispositivo from fichada.config where id = 1) then
+        return json_build_object('error','claves_iguales');
+      end if;
+      update fichada.config set clave_panel = v_nueva where id = 1;
+    else
+      if v_nueva = (select clave_panel from fichada.config where id = 1) then
+        return json_build_object('error','claves_iguales');
+      end if;
+      update fichada.config set clave_dispositivo = v_nueva where id = 1;
+    end if;
+    return json_build_object('ok', true, 'cual', v_cual);
   end if;
 
   return json_build_object('error','op_desconocida');
