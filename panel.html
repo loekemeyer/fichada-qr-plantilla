@@ -372,15 +372,16 @@
 
     <div class="form">
       <h3>Clave de la pantalla del depósito</h3>
-      <p class="ayuda">La que va en el enlace de <code>pantalla.html</code>. Cambiala si alguien
-        fotografió la barra de direcciones del dispositivo fijo. <b>Ojo:</b> apenas la cambies, la
-        pantalla del depósito deja de emitir códigos hasta que la vuelvas a abrir con el enlace nuevo,
-        y mientras tanto nadie puede fichar.</p>
+      <p class="ayuda">La que se tipea al activar <code>pantalla.html</code> en el dispositivo fijo.
+        Se pide una sola vez y queda guardada en esa pantalla; no viaja en la barra de direcciones.
+        <b>Ojo:</b> apenas la cambies, la pantalla del depósito pide la nueva y hasta que alguien la
+        ponga nadie puede fichar.</p>
       <div class="actual">
         <span>Clave actual</span>
         <code id="dActual">••••••••••••</code>
         <button class="link" id="dVer">Mostrar</button>
         <button class="link" id="dCopiar">Copiar enlace de la pantalla</button>
+        <button class="link" id="dCopiarClave">Copiar clave</button>
       </div>
       <div class="campos2">
         <div class="campo"><label for="dNueva">Clave nueva</label>
@@ -863,6 +864,7 @@
       return;
     }
     if (b.id === "dCopiar"){ copiarEnlacePantalla(); return; }
+    if (b.id === "dCopiarClave"){ copiarClaveDispositivo(); return; }
     if (b.id === "nuevo"){ abrirForm(null); return; }
     if (b.id === "fEmpVolver"){
       modoEmpresaNueva(false); $("fEmpNueva").value = "";
@@ -946,21 +948,28 @@
     if (d && d.ok) CLAVE_DISP = d.clave;
   }
 
+  // El enlace va SIN la clave: la pantalla la pide al activarse y la guarda.
   function enlacePantalla(){
-    return location.origin + location.pathname.replace(/panel\.html$/, "")
-         + "pantalla.html#clave=" + encodeURIComponent(CLAVE_DISP);
+    return location.origin + location.pathname.replace(/panel\.html$/, "") + "pantalla.html";
+  }
+
+  async function copiar(texto, ok, rotulo){
+    try{ await navigator.clipboard.writeText(texto); toast(ok); }
+    catch(e){ window.prompt(rotulo, texto); }
   }
 
   async function copiarEnlacePantalla(){
+    await copiar(enlacePantalla(),
+      "Enlace copiado. Abrilo en el dispositivo del depósito y ahí te va a pedir la clave.",
+      "Copiá este enlace y abrilo en el dispositivo del depósito:");
+  }
+
+  async function copiarClaveDispositivo(){
     await cargarClaveDispositivo();
     if (!CLAVE_DISP){ toast("No se pudo leer la clave de la pantalla."); return; }
-    var url = enlacePantalla();
-    try{
-      await navigator.clipboard.writeText(url);
-      toast("Enlace copiado. Abrilo en el dispositivo fijo del depósito.");
-    }catch(e){
-      window.prompt("Copiá este enlace y abrilo en el dispositivo del depósito:", url);
-    }
+    await copiar(CLAVE_DISP,
+      "Clave copiada. Pegala en la pantalla del depósito cuando te la pida.",
+      "Clave de la pantalla:");
   }
 
   async function cambiarClave(cual){

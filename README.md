@@ -62,13 +62,18 @@ supabase/       Migraciones y Edge Functions
 
 Son **independientes a propósito**: si se filtra la de la pantalla, el panel sigue cerrado.
 
-- **Clave de dispositivo** → `pantalla.html#clave=LA_CLAVE`. Emite los tokens del QR.
+- **Clave de dispositivo** → se tipea al abrir `pantalla.html` en el dispositivo fijo.
+  Queda guardada en esa pantalla y **no viaja en la barra de direcciones**: se pide
+  una sola vez, no en cada arranque. Emite los tokens del QR.
 - **Clave de panel** → `panel.html`, se pega en la puerta (o `panel.html#clave=LA_CLAVE`).
   El panel la guarda en ese dispositivo y la borra de la barra de direcciones.
 
 Ambas se rotan desde el panel → pestaña **Ajustes**, sin entrar a Supabase. Ahí
-también se ve la clave de la pantalla y se copia su enlace armado, para montar el
-dispositivo fijo sin transcribir nada a mano.
+también se ve y se copia la clave de la pantalla, para montar el dispositivo fijo.
+
+Si rotás la clave de la pantalla, el dispositivo del depósito la pide sola en la
+próxima rotación del QR: no hay que reabrir nada ni tocar SQL. Pero **hasta que
+alguien la ponga, nadie puede fichar** — hacelo fuera del horario de entrada.
 
 El panel **nunca** muestra su propia clave: quien está adentro ya la tiene, y así
 no viaja por la red de más. Si la perdiste, se recupera por SQL
@@ -92,7 +97,8 @@ fichadas viejas quedan para la liquidación.
    El token de Actions puede publicar pero no puede *crear* el sitio de Pages,
    así que ese switch va a mano. Después, `.github/workflows/pages.yml` sube el
    sitio en cada push a `main`.
-6. Abrir `pantalla.html#clave=...` en el dispositivo fijo del depósito.
+6. Abrir `pantalla.html` en el dispositivo fijo del depósito y tipear ahí la clave
+   del dispositivo (el panel la muestra y la copia, en Ajustes).
 
 ## Probar sin backend
 

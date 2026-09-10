@@ -29,7 +29,9 @@ select deposito, clave_dispositivo, clave_panel, token_ttl_seg
   from fichada.config where id = 1;
 ```
 
-- `clave_dispositivo` → `pantalla.html#clave=ESA_CLAVE`, en el dispositivo fijo.
+- `clave_dispositivo` → se tipea al activar `pantalla.html` en el dispositivo fijo.
+  El formato viejo `pantalla.html#clave=...` sigue funcionando: la pantalla guarda la
+  clave y la borra de la barra de direcciones en el acto.
 - `clave_panel` → se pega en la puerta de `panel.html`.
 
 Lo normal es rotarlas desde el panel → **Ajustes**. Esto es el plan B, para
@@ -107,6 +109,15 @@ update fichada.config set ip_trabajo = '200.x.x.x' where id = 1;
 Falta activar el chequeo en `deposito-marcar` (leer `x-forwarded-for` y comparar
 del lado servidor). Se saltea con VPN o datos móviles, por eso va como
 **complemento** del QR rotativo, no como única defensa.
+
+## Lo que esto NO resuelve
+
+La clave del dispositivo es un secreto, no una verificación de lugar: **quien la
+tenga puede abrir la pantalla del QR desde cualquier lado** y generar códigos
+válidos. Sacarla de la URL evita que se lea por encima del hombro en el depósito,
+que es el vector realista, pero no ata la pantalla al lugar.
+
+Lo único que ata al lugar es el chequeo de IP del punto 6, y exige IP pública fija.
 
 ## Modelo de seguridad
 
