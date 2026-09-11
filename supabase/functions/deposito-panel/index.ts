@@ -14,7 +14,13 @@ const cors = {
 };
 
 const OPS = ["dia", "empleados", "guardar_empleado", "baja_empleado", "guardar_marcas",
-             "clave_dispositivo", "cambiar_clave"];
+             "clave_dispositivo", "cambiar_clave", "ips", "guardar_ip"];
+
+function ipCliente(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for") ?? "";
+  const primera = xff.split(",")[0]?.trim();
+  return primera || (req.headers.get("x-real-ip") ?? "").trim();
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -52,6 +58,11 @@ Deno.serve(async (req: Request) => {
     console.error("deposito-panel:", error.message);
     return json({ error: "error_interno" }, 500);
   }
+  // En 'ips' agregamos desde dónde está mirando quien abre el panel: sirve para
+  // no confundir la IP de la oficina con la del depósito al cargar el filtro.
+  const salida = (op === "ips" && data && typeof data === "object")
+    ? { ...(data as Record<string, unknown>), ip_de_esta_sesion: ipCliente(req) }
+    : data;
   const status = (data as { error?: string })?.error === "clave_invalida" ? 401 : 200;
-  return json(data, status);
+  return json(salida, status);
 });

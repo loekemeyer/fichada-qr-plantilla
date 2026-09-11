@@ -2,6 +2,9 @@
 -- Panel de RR. HH. Una sola puerta con clave propia (clave_panel), distinta de
 -- la clave de la pantalla del QR. Devuelve las marcas crudas: el cálculo de
 -- horas y estados lo hace el navegador, con la misma regla que muestra en pantalla.
+--
+-- Las ops 'ips' y 'guardar_ip' leen fichada.ips_vistas, que crea 0005. Esta
+-- función se compila recién al llamarla, así que el orden no rompe nada.
 -- ============================================================================
 create or replace function public.fichada_dep_panel(
   p_clave text, p_op text, p_payload jsonb default '{}'::jsonb
@@ -159,6 +162,27 @@ begin
       update fichada.config set clave_dispositivo = v_nueva where id = 1;
     end if;
     return json_build_object('ok', true, 'cual', v_cual);
+
+  -- ---------------------------------------------------------- filtro por IP
+  elsif p_op = 'ips' then
+    return json_build_object('ok', true,
+      'ip_trabajo', (select ip_trabajo from fichada.config where id = 1),
+      'vistas', coalesce((
+        select json_agg(json_build_object(
+                 'ip', v.ip, 'veces', v.veces, 'rechazadas', v.rechazadas,
+                 'primera', to_char(v.primera_vez at time zone v_tz, 'DD/MM HH24:MI'),
+                 'ultima',  to_char(v.ultima_vez  at time zone v_tz, 'DD/MM HH24:MI'))
+               order by v.ultima_vez desc)
+          from fichada.ips_vistas v), '[]'::json));
+
+  -- Guardar vacío apaga el filtro. Es la salida de emergencia si la IP quedó mal.
+  elsif p_op = 'guardar_ip' then
+    v_nueva := btrim(coalesce(p_payload->>'ip',''));
+    if v_nueva <> '' and v_nueva !~ '^[0-9a-fA-F:.,\s]+$' then
+      return json_build_object('error','ip_invalida');
+    end if;
+    update fichada.config set ip_trabajo = nullif(v_nueva,'') where id = 1;
+    return json_build_object('ok', true, 'ip_trabajo', nullif(v_nueva,''));
   end if;
 
   return json_build_object('error','op_desconocida');

@@ -98,17 +98,40 @@ curl -s -X POST "$BASE/deposito-marcar" "${H[@]}" \
 Errores esperados: `clave_invalida`, `token_vencido`, `token_invalido`,
 `token_usado` (replay), `no_habilitado`, `tipo_no_permitido`, `rebote`.
 
-## 6. (Opcional) Capa "solo desde el depósito" por IP
+## 6. Capa "solo desde el depósito" por IP
 
-Requiere **IP pública fija y sin CGNAT**.
+Es **lo único que ata la pantalla al lugar**. Se enciende desde el panel →
+**Ajustes** → *Solo desde la red del depósito*; no hace falta SQL.
 
-```sql
-update fichada.config set ip_trabajo = '200.x.x.x' where id = 1;
+- Aplica **solo a emitir** (la pantalla fija). Fichar no se filtra: los operarios
+  escanean con datos móviles y bloquearlos por IP rompería la fichada sin ganar
+  nada — el token firmado ya prueba que el código salió de la pantalla.
+- El **panel tampoco se filtra**, a propósito: es la válvula de escape. Si la IP
+  queda mal cargada y se corta la fichada, el filtro se apaga desde ahí.
+- Acepta **varias IPs separadas por coma**.
+- `ip_trabajo` vacío = filtro apagado.
+
+Toda IP que pide un código queda registrada en `fichada.ips_vistas`, se acepte o
+se rechace, y el panel la lista. **Antes de encender el filtro, dejá correr una
+semana y mirá esa lista:** una sola IP significa que la del depósito es fija en
+la práctica; varias significa que es dinámica y el filtro va a cortar la fichada
+cada vez que cambie.
+
+Requisitos y límites:
+
+- **IP pública fija y sin CGNAT.** Si la IP del depósito arranca en `100.64.` a
+  `100.127.`, es CGNAT: se comparte con otros clientes del proveedor y filtrar
+  por ahí dejaría entrar a gente ajena.
+- Se saltea con una VPN que salga por la IP del depósito. Va como **complemento**
+  del QR rotativo, no como única defensa.
+
+Para descubrir la IP tal como la ve el servidor, sin encender nada:
+
+```bash
+curl -s -X POST "$BASE/deposito-emitir" \
+  -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
+  -H "Content-Type: application/json" -d '{"whoami":true}'
 ```
-
-Falta activar el chequeo en `deposito-marcar` (leer `x-forwarded-for` y comparar
-del lado servidor). Se saltea con VPN o datos móviles, por eso va como
-**complemento** del QR rotativo, no como única defensa.
 
 ## Lo que esto NO resuelve
 
@@ -117,7 +140,8 @@ tenga puede abrir la pantalla del QR desde cualquier lado** y generar códigos
 válidos. Sacarla de la URL evita que se lea por encima del hombro en el depósito,
 que es el vector realista, pero no ata la pantalla al lugar.
 
-Lo único que ata al lugar es el chequeo de IP del punto 6, y exige IP pública fija.
+Eso lo resuelve el filtro por IP del punto 6, **y solo si está encendido**. Con
+`ip_trabajo` vacío, la clave es lo único que hay.
 
 ## Modelo de seguridad
 

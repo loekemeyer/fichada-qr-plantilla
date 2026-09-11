@@ -40,12 +40,15 @@ cerrado**: a media mañana nadie está −8 h.
 - **Anti doble escaneo:** dos marcas del mismo operario en menos de 2 minutos se
   rechazan con `rebote`.
 - **Solo la pantalla del depósito** (con la clave de dispositivo) puede emitir tokens.
+- **Filtro por IP opcional**, en el panel → Ajustes: con él encendido el QR solo
+  se genera desde la red del depósito. Es lo único que ata la pantalla al lugar.
 - **La hora la pone el servidor.** Cambiar la hora del celular no sirve de nada.
 
 > Límite honesto: dentro de la ventana de ~30 s alguien podría reenviar el QR por
-> WhatsApp. Para cerrar eso está la capa opcional de IP del depósito
-> (`config.ip_trabajo`, ver `supabase/README.md`). Nada garantiza presencia
-> física al 100 % sin geolocalización o hardware.
+> WhatsApp, y la clave del dispositivo es un secreto, no una verificación de
+> lugar — con el filtro por IP apagado, quien la tenga abre la pantalla desde
+> cualquier lado. Nada garantiza presencia física al 100 % sin geolocalización o
+> hardware.
 
 ## Las cuatro pantallas
 

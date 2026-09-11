@@ -163,7 +163,7 @@
         body: JSON.stringify({})
       });
       var d = await r.json();
-      if (d.error) throw new Error(d.error);
+      if (d.error){ var err = new Error(d.error); err.ip = d.ip || ""; throw err; }
       return d.token;
     }
     // Modo demo (sin config): token derivado del reloj. NO es seguro, es para ver el diseño.
@@ -196,9 +196,12 @@
         await pedirToken(v);              // si emite, la clave es buena
         CLAVE = v; guardar(v); arrancar();
       }catch(e){
-        abrirPuerta(e.message === "clave_invalida"
-          ? "Esa clave no es la del dispositivo."
-          : "No se pudo verificar. Revisá la conexión de esta pantalla.");
+        abrirPuerta(
+          e.message === "clave_invalida" ? "Esa clave no es la del dispositivo." :
+          e.message === "ip_no_autorizada"
+            ? "Esta red no está autorizada para mostrar el QR"
+              + (e.ip ? " (IP vista: " + e.ip + ")" : "") + ". Avisale a RR. HH."
+            : "No se pudo verificar. Revisá la conexión de esta pantalla.");
       }finally{
         $("entrar").disabled = false; $("entrar").textContent = "Activar pantalla";
       }
@@ -226,6 +229,9 @@
         if (e.message === "clave_invalida"){
           CLAVE = ""; guardar("");
           abrirPuerta("La clave del dispositivo cambió. Poné la nueva para reactivar la pantalla.");
+        } else if (e.message === "ip_no_autorizada"){
+          showWarn("Esta red no está autorizada para mostrar el QR"
+            + (e.ip ? ". IP vista: " + e.ip : "") + ". Avisale a RR. HH.");
         } else {
           showWarn("No se pudo generar el código. Revisá la conexión.");
         }

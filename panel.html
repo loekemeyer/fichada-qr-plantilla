@@ -193,6 +193,14 @@
   .actual span{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
                color:var(--ink-3)}
   .actual code{font-family:var(--mono);font-size:13px;color:var(--ink);letter-spacing:.02em}
+  .estado{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700}
+  .estado i{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+  .estado.on i{background:var(--ok)} .estado.off i{background:var(--ink-3)}
+  .estado.on{color:var(--ok)} .estado.off{color:var(--ink-3)}
+  table.ips{min-width:520px;margin-top:12px}
+  table.ips td.ip{font-family:var(--mono);font-size:12.5px}
+  .fila-ok{color:var(--ok);font-weight:700}
+  .fila-no{color:var(--bad);font-weight:700}
 
   .note{display:flex;gap:9px;align-items:flex-start;background:var(--surface);
         border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r);
@@ -395,6 +403,38 @@
         <button class="cta" id="dGuardar">Cambiar clave de la pantalla</button>
         <button class="chip" data-azar="d">Generar al azar</button>
       </div>
+    </div>
+
+    <div class="form">
+      <h3>Solo desde la red del depósito</h3>
+      <p class="ayuda">Con esto encendido, el QR solo se genera si el pedido llega desde la IP del
+        depósito. Es lo único que ata la pantalla al lugar: la clave sola no alcanza, porque quien la
+        tenga abre la pantalla desde cualquier lado.
+        <b>Si cargás una IP equivocada, en el depósito nadie puede fichar</b> — por eso el apagado
+        está acá y no en la base. Aceptá varias separadas por coma.</p>
+      <div class="actual">
+        <span class="estado off" id="ipEstado"><i></i>Filtro apagado</span>
+        <span style="margin-left:auto;font-size:11.5px;color:var(--ink-3)">
+          Estás viendo el panel desde <code id="ipSesion">—</code></span>
+      </div>
+      <div class="campos2">
+        <div class="campo"><label for="ipTrabajo">IP autorizada del depósito</label>
+          <input type="text" id="ipTrabajo" autocomplete="off" spellcheck="false"
+                 placeholder="186.18.168.71"></div>
+      </div>
+      <div class="pie">
+        <span class="err" id="ipErr" hidden></span>
+        <button class="cta" id="ipGuardar">Guardar y encender</button>
+        <button class="chip" id="ipApagar">Apagar el filtro</button>
+      </div>
+      <div class="scroll"><table class="ips">
+        <thead><tr><th>IP que pidió el QR</th><th class="num">Veces</th>
+          <th class="num">Rechazos</th><th>Primera</th><th>Última</th><th></th></tr></thead>
+        <tbody id="ipFilas"></tbody>
+      </table></div>
+      <p class="ayuda" style="margin:10px 0 0">Si en una semana acá hay <b>una sola IP</b>, la del
+        depósito es fija en la práctica. Si aparecen varias, es dinámica y este filtro te va a cortar
+        la fichada cada vez que cambie.</p>
     </div>
 
     <p class="note">
@@ -845,7 +885,7 @@
           $(par[1]).hidden = !activa;
           $(par[1]).style.display = activa ? "flex" : "none";
         });
-      if (b.id === "tabAjustes") cargarClaveDispositivo();
+      if (b.id === "tabAjustes"){ cargarClaveDispositivo(); cargarIps(); }
       return;
     }
     if (b.dataset.azar){
@@ -855,6 +895,9 @@
       $(b.dataset.azar === "p" ? "pErr" : "dErr").hidden = true;
       return;
     }
+    if (b.id === "ipGuardar"){ guardarIp($("ipTrabajo").value.trim()); return; }
+    if (b.id === "ipApagar"){ $("ipTrabajo").value = ""; guardarIp(""); return; }
+    if (b.dataset.usarip){ $("ipTrabajo").value = b.dataset.usarip; $("ipTrabajo").focus(); return; }
     if (b.id === "pGuardar"){ cambiarClave("panel"); return; }
     if (b.id === "dGuardar"){ cambiarClave("dispositivo"); return; }
     if (b.id === "dVer"){
@@ -970,6 +1013,51 @@
     await copiar(CLAVE_DISP,
       "Clave copiada. Pegala en la pantalla del depósito cuando te la pida.",
       "Clave de la pantalla:");
+  }
+
+  // ------------------------------------------------------------- filtro IP
+  async function cargarIps(){
+    var d;
+    try { d = await api("ips", {}); } catch(e){ return; }
+    if (!d || d.error) return;
+    var activo = !!(d.ip_trabajo && String(d.ip_trabajo).trim());
+    $("ipEstado").className = "estado " + (activo ? "on" : "off");
+    $("ipEstado").innerHTML = "<i></i>" + (activo ? "Filtro encendido" : "Filtro apagado");
+    $("ipTrabajo").value = d.ip_trabajo || "";
+    $("ipSesion").textContent = d.ip_de_esta_sesion || "—";
+
+    var vistas = d.vistas || [];
+    $("ipFilas").innerHTML = vistas.length ? vistas.map(function(v){
+      return '<tr><td class="ip">' + esc(v.ip) + '</td>'
+        + '<td class="num">' + v.veces + '</td>'
+        + '<td class="num ' + (v.rechazadas ? 'fila-no' : 'nada') + '">' + v.rechazadas + '</td>'
+        + '<td class="t">' + esc(v.primera) + '</td>'
+        + '<td class="t">' + esc(v.ultima) + '</td>'
+        + '<td><button class="link" data-usarip="' + esc(v.ip) + '">Usar esta</button></td></tr>';
+    }).join("")
+      : '<tr><td colspan="6" class="vacio">Todavía no pidió el QR ninguna pantalla. '
+      + 'Apenas la del depósito genere el primer código, su IP aparece acá.</td></tr>';
+  }
+
+  async function guardarIp(valor){
+    $("ipErr").hidden = true;
+    if (valor && !/^[0-9a-fA-F:.,\s]+$/.test(valor)){
+      $("ipErr").textContent = "Eso no parece una IP. Ejemplo: 186.18.168.71";
+      $("ipErr").hidden = false; return;
+    }
+    if (!valor && !window.confirm(
+      "Sin filtro, la pantalla del QR se puede abrir desde cualquier red.\n\n¿Apagarlo?")) return;
+    $("ipGuardar").disabled = true;
+    var d;
+    try { d = await api("guardar_ip", { ip: valor }); } catch(e){ d = null; }
+    $("ipGuardar").disabled = false;
+    if (!d || d.error){
+      $("ipErr").textContent = "No se pudo guardar. Reintentá.";
+      $("ipErr").hidden = false; return;
+    }
+    toast(valor ? "Filtro encendido. Solo esa red puede mostrar el QR."
+                : "Filtro apagado. Cualquier red puede mostrar el QR.");
+    cargarIps();
   }
 
   async function cambiarClave(cual){
