@@ -12,7 +12,7 @@ window.FICHADA_CFG = {
   deposito: "Virgilio",
 
   supabaseUrl:  "https://hrxfctzncixxqmpfhskv.supabase.co",
-  supabaseAnon: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyeGZjdHpuY2l4eHFtcGZoc2t2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MjQyNjEsImV4cCI6MjA4ODMwMDI2MX0.4L6wguch8UZGhC2VpzrWcCjJGUV-IkYsl9JoCWrOLUs",
+  supabaseAnon: "sb_publishable_BqpAgZH6ty-9wft10_YMhw_0rcIPuWT",
 
   // Edge Functions de ESTE sistema. Ojo: NO son fichada-qr-*, que pertenecen
   // al sistema de fichada anterior y no se tocan.
